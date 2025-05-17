@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Редактирование квеста #{{ quest.id }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2>Редактирование квеста #{{ quest.id }}</h2>
+        
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        
+        <form method="post" action="/quests/{{ quest.id }}">
+            <input type="hidden" name="_method" value="patch">
+            
+            <div class="mb-3">
+                <label for="total_duration" class="form-label">Общая продолжительность (минут)</label>
+                <input type="number" class="form-control" id="total_duration" 
+                    name="total_duration" value="{{ quest.total_duration }}" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="location_type" class="form-label">Тип локации</label>
+                <select class="form-select" id="location_type" name="location_type" required>
+                    <option value="дома" {% if quest.location_type == 'дома' %}selected{% endif %}>В помещении</option>
+                    <option value="на улице" {% if quest.location_type == 'на улице' %}selected{% endif %}>На улице</option>
+                    <option value="везде" {% if quest.location_type == 'везде' %}selected{% endif %}>Везде</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="age_group_id" class="form-label">Возрастная группа</label>
+                <select class="form-select" id="age_group_id" name="age_group_id" required>
+                    {% for age_group in age_groups %}
+                        <option value="{{ age_group.id }}" {% if age_group.id == quest.age_group_id %}selected{% endif %}>
+                            {{ age_group.min_age }}-{{ age_group.max_age }} лет
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Выберите задания</label>
+                <div class="row">
+                    {% for challenge in challenges %}
+                        <div class="col-md-6 mb-2">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" 
+                                    id="challenge_{{ challenge.id }}" 
+                                    name="challenge_ids" 
+                                    value="{{ challenge.id }}"
+                                    {% if challenge.id in quest_challenge_ids %}checked{% endif %}>
+                                <label class="form-check-label" for="challenge_{{ challenge.id }}">
+                                    {{ challenge.title }} ({{ challenge.duration_min }} мин.)
+                                </label>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+            <a href="/quests/{{ quest.id }}" class="btn btn-secondary">Отмена</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

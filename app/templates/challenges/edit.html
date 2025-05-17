@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Редактирование задания{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2>Редактирование задания</h2>
+        
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        
+        <form method="post" action="/challenges/{{ challenge.id }}">
+            <input type="hidden" name="_method" value="patch">
+            
+            <div class="mb-3">
+                <label for="title" class="form-label">Название</label>
+                <input type="text" class="form-control" id="title" name="title" value="{{ challenge.title }}" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="description" class="form-label">Описание</label>
+                <textarea class="form-control" id="description" name="description" rows="3" required>{{ challenge.description }}</textarea>
+            </div>
+            
+            <div class="mb-3">
+                <label for="type" class="form-label">Тип задания</label>
+                <select class="form-select" id="type" name="type" required>
+                    <option value="спортивный" {% if challenge.type == 'спортивный' %}selected{% endif %}>Спортивный</option>
+                    <option value="интеллектуальный" {% if challenge.type == 'интеллектуальный' %}selected{% endif %}>Интеллектуальный</option>
+                    <option value="творческий" {% if challenge.type == 'творческий' %}selected{% endif %}>Творческий</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="location_type" class="form-label">Тип локации</label>
+                <select class="form-select" id="location_type" name="location_type" required>
+                    <option value="дома" {% if challenge.location_type == 'дома' %}selected{% endif %}>В помещении</option>
+                    <option value="на улице" {% if challenge.location_type == 'на улице' %}selected{% endif %}>На улице</option>
+                    <option value="везде" {% if challenge.location_type == 'везде' %}selected{% endif %}>Везде</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="duration_min" class="form-label">Продолжительность (минут)</label>
+                <input type="number" class="form-control" id="duration_min" name="duration_min" value="{{ challenge.duration_min }}" required min="1">
+            </div>
+            
+            <div class="mb-3">
+                <label for="age_group_id" class="form-label">Возрастная группа</label>
+                <select class="form-select" id="age_group_id" name="age_group_id" required>
+                    {% for age_group in age_groups %}
+                        <option value="{{ age_group.id }}" {% if age_group.id == challenge.age_group_id %}selected{% endif %}>
+                            {{ age_group.min_age }}-{{ age_group.max_age }} лет
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="d-flex justify-content-between">
+                <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                <a href="/challenges/{{ challenge.id }}" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

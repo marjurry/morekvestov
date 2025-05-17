@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Создание задания{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2>Создание нового задания</h2>
+        
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        
+        <form method="post" action="/challenges">
+            <div class="mb-3">
+                <label for="id" class="form-label">Номер задания</label>
+                <input type="number" class="form-control" id="id" name="id" required>
+            </div>
+            <div class="mb-3">
+                <label for="title" class="form-label">Название</label>
+                <input type="text" class="form-control" id="title" name="title" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="type" class="form-label">Тип задания</label>
+                <select class="form-select" id="type" name="type" required>
+                    <option value="спортивный">Спортивный</option>
+                    <option value="интеллектуальный">Интеллектуальный</option>
+                    <option value="творческий">Творческий</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="location_type" class="form-label">Тип локации</label>
+                <select class="form-select" id="location_type" name="location_type" required>
+                    <option value="дома">В помещении</option>
+                    <option value="на улице">На улице</option>
+                    <option value="везде">Везде</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="duration_min" class="form-label">Продолжительность (минут)</label>
+                <input type="number" class="form-control" id="duration_min" name="duration_min" min="1" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="age_group_id" class="form-label">Возрастная группа</label>
+                <select class="form-select" id="age_group_id" name="age_group_id" required>
+                    {% for age_group in age_groups %}
+                        <option value="{{ age_group.id }}">{{ age_group.min_age }}-{{ age_group.max_age }} лет</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="rules" class="form-label">Правила</label>
+                <textarea class="form-control" id="rules" name="rules" rows="3" required></textarea>
+            </div>
+            
+            <div class="d-flex justify-content-between">
+                <button type="submit" class="btn btn-primary">Создать задание</button>
+                <a href="/challenges" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

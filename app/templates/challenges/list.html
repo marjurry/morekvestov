@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}Все задания{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Фильтры</h5>
+            </div>
+            <div class="card-body">
+                <form method="get" action="/challenges" id="challenge-filter-form">
+                    <div class="mb-3">
+                        <label for="age_group_id" class="form-label">Возрастная группа</label>
+                        <select class="form-select" id="age_group_id" name="age_group_id">
+                            <option value="">Все</option>
+                            {% for age_group in age_groups %}
+                                <option value="{{ age_group.id }}" {% if request.query_params.get('age_group_id') == age_group.id|string %}selected{% endif %}>
+                                    {{ age_group.min_age }}-{{ age_group.max_age }} лет
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="type" class="form-label">Тип задания</label>
+                        <select class="form-select" id="type" name="type">
+                            <option value="">Все</option>
+                            <option value="спортивный" {% if request.query_params.get('type') == 'спортивный' %}selected{% endif %}>Спортивный</option>
+                            <option value="интеллектуальный" {% if request.query_params.get('type') == 'интеллектуальный' %}selected{% endif %}>Интеллектуальный</option>
+                            <option value="творческий" {% if request.query_params.get('type') == 'творческий' %}selected{% endif %}>Творческий</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="location_type" class="form-label">Тип локации</label>
+                        <select class="form-select" id="location_type" name="location_type">
+                            <option value="">Все</option>
+                            <option value="дома" {% if request.query_params.get('location_type') == 'дома' %}selected{% endif %}>Дома</option>
+                            <option value="на улице" {% if request.query_params.get('location_type') == 'на улице' %}selected{% endif %}>На улице</option>
+                            <option value="везде" {% if request.query_params.get('location_type') == 'везде' %}selected{% endif %}>Везде</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="min_duration" class="form-label">Минимальная продолжительность</label>
+                        <input type="number" class="form-control" id="min_duration" name="min_duration" 
+                               value="{{ request.query_params.get('min_duration', '') }}" min="0">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="max_duration" class="form-label">Максимальная продолжительность</label>
+                        <input type="number" class="form-control" id="max_duration" name="max_duration" 
+                               value="{{ request.query_params.get('max_duration', '') }}" min="0">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Применить</button>
+                    <a href="/challenges" class="btn btn-secondary">Сбросить</a>
+                </form>
+            </div>
+        </div>
+        
+        {% if current_user %}
+        <div class="d-grid gap-2">
+            <a href="/challenges/create" class="btn btn-success">Создать задание</a>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-9">
+        <h2>Задания</h2>
+        
+        {% if challenges %}
+            <div class="row">
+                {% for challenge in challenges %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100 challenge-card">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ challenge.title }}</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">
+                                    {% if challenge.type == 'спортивный' %}
+                                        <span class="badge bg-danger">Спортивный</span>
+                                    {% elif challenge.type == 'интеллектуальный' %}
+                                        <span class="badge bg-primary">Интеллектуальный</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Творческий</span>
+                                    {% endif %}
+                                    
+                                    {% if challenge.location_type == 'дома' %}
+                                        <span class="badge bg-info">Дома</span>
+                                    {% elif challenge.location_type == 'везде' %}
+                                        <span class="badge bg-primary">Везде</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">На улице</span>
+                                    {% endif %}
+                                </h6>
+                                <p class="card-text">{{ challenge.description|truncate(100) }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge bg-light text-dark">
+                                        {{ challenge.age_group.min_age }}-{{ challenge.age_group.max_age }} лет
+                                    </span>
+                                    <span class="text-muted">{{ challenge.duration_min }} мин.</span>
+                                </div>
+                                <a href="/challenges/{{ challenge.id }}" class="stretched-link"></a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Пагинация -->
+            {% if pagination and pagination.pages > 1 %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('read_challenges_page', page=pagination.prev_num, **request.args) }}">
+                            &laquo;
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page_num in pagination.iter_pages() %}
+                        {% if page_num %}
+                            <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('read_challenges_page', page=page_num, **request.args) }}">
+                                    {{ page_num }}
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('read_challenges_page', page=pagination.next_num, **request.args) }}">
+                            &raquo;
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        {% else %}
+            <div class="alert alert-info">Задания не найдены. Попробуйте изменить параметры фильтрации.</div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Модальное окно для быстрого просмотра -->
+<div class="modal fade" id="challengeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="challengeModalLabel">Просмотр задания</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="challengeModalBody">
+                Загрузка...
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <a href="#" class="btn btn-primary" id="challengeModalLink">Подробнее</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Скрипт для обработки формы фильтрации
+document.getElementById('challenge-filter-form').addEventListener('submit', function(e) {
+    // Отключаем пустые поля перед отправкой
+    const inputs = this.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        if (input.value === '' || input.value === null) {
+            input.disabled = true;
+        }
+    });
+});
+
+// Скрипт для быстрого просмотра задания
+document.addEventListener('DOMContentLoaded', function() {
+    const challengeCards = document.querySelectorAll('.challenge-card');
+    const modal = new bootstrap.Modal(document.getElementById('challengeModal'));
+    const modalBody = document.getElementById('challengeModalBody');
+    const modalLink = document.getElementById('challengeModalLink');
+    const modalTitle = document.getElementById('challengeModalLabel');
+    
+    challengeCards.forEach(card => {
+        card.addEventListener('click', function(e) {
+            if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') return;
+            
+            const challengeId = this.querySelector('a').getAttribute('href').split('/').pop();
+            
+            // Показываем загрузку
+            modalBody.innerHTML = '<div class="text-center my-4"><div class="spinner-border" role="status"><span class="visually-hidden">Загрузка...</span></div></div>';
+            
+            // Загружаем данные задания
+            fetch(`/api/challenges/${challengeId}`)
+                .then(response => response.json())
+                .then(data => {
+                    modalTitle.textContent = data.title;
+                    modalBody.innerHTML = `
+                        <p>${data.description}</p>
+                        <ul class="list-group list-group-flush mb-3">
+                            <li class="list-group-item">
+                                <strong>Тип задания:</strong> ${data.type === 'спортивный' ? 'Спортивный' : 
+                                    data.type === 'интеллектуальный' ? 'Интеллектуальный' : 'Творческий'}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Локация:</strong> ${data.location_type === 'дома' ? 'Дома' : data.location_type === 'везде' ? 'Везде' : 'На улице'}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Продолжительность:</strong> ${data.duration_min} минут
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Возрастная группа:</strong> ${data.age_group.min_age}-${data.age_group.max_age} лет
+                            </li>
+                        </ul>
+                    `;
+                    modalLink.setAttribute('href', `/challenges/${challengeId}`);
+                })
+                .catch(error => {
+                    modalBody.innerHTML = `<div class="alert alert-danger">Ошибка загрузки данных: ${error.message}</div>`;
+                });
+            
+            modal.show();
+        });
+    });
+});
+</script>
+{% endblock %}

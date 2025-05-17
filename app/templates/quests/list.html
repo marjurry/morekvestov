@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Все квесты{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Фильтры</h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="/quests" id="quest-filter-form">
+                    {% if current_user and current_user.is_admin %}
+                    <div class="mb-3">
+                        <label for="user_id" class="form-label">Автор квеста</label>
+                        <select class="form-select" id="user_id" name="user_id">
+                            <option value="">Все авторы</option>
+                            {% for user in users %}
+                                <option value="{{ user.phone_number }}" 
+                                    {% if request.query_params.get('user_id', '') == user.phone_number|string %}selected{% endif %}>
+                                    {{ user.phone_number }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="age_group_id" class="form-label">Возрастная группа</label>
+                        <select class="form-select" id="age_group_id" name="age_group_id">
+                            <option value="">Все</option>
+                            {% for age_group in age_groups %}
+                                <option value="{{ age_group.id }}"
+                                    {% if request.query_params.get('age_group_id', '') == age_group.id|string %}selected{% endif %}>
+                                    {{ age_group.min_age }}-{{ age_group.max_age }} лет
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="location_type" class="form-label">Тип локации</label>
+                        <select class="form-select" id="location_type" name="location_type">
+                            <option value="">Все</option>
+                            <option value="дома" 
+                                {% if request.query_params.get('location_type', '') == 'дома' %}selected{% endif %}>
+                                В помещении
+                            </option>
+                            <option value="на улице" 
+                                {% if request.query_params.get('location_type', '') == 'на улице' %}selected{% endif %}>
+                                На улице
+                            </option>
+                            <option value="везде" 
+                                {% if request.query_params.get('location_type', '') == 'везде' %}selected{% endif %}>
+                                Везде
+                            </option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="challenge_id" class="form-label">Содержит задание</label>
+                        <select class="form-select" id="challenge_id" name="challenge_id">
+                            <option value="">Любое задание</option>
+                            {% for challenge in challenges %}
+                                <option value="{{ challenge.id }}" 
+                                    {% if request.query_params.get('challenge_id', '') == challenge.id|string %}selected{% endif %}>
+                                    {{ challenge.title }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="total_duration" class="form-label">Продолжительность (мин)</label>
+                        <input type="number" class="form-control" id="total_duration" name="total_duration" 
+                            value="{{ request.query_params.get('total_duration', '') }}" min="0">
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary">Применить фильтры</button>
+                        <a href="/quests" class="btn btn-secondary">Сбросить</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        {% if current_user %}
+        <div class="d-grid gap-2">
+            <a href="/quests/new" class="btn btn-success">Создать квест</a>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-9">
+        <h2>Квесты</h2>
+        
+        {% if quests %}
+            <div class="row">
+                {% for quest in quests %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">Квест №{{ quest.id }}</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">
+                                    {{ quest.age_group.min_age }}-{{ quest.age_group.max_age }} лет | 
+                                    {% if quest.location_type == 'дома' %}
+                                        В помещении
+                                    {% elif quest.location_type == 'везде' %}
+                                        Везде
+                                    {% else %}
+                                        На улице
+                                    {% endif %}
+                                </h6>
+                                <p class="card-text">
+                                    <strong>Продолжительность:</strong> {{ quest.total_duration }} мин.<br>
+                                    <strong>Количество заданий:</strong> {{ quest.challenges|length }}
+                                </p>
+                                <a href="/quests/{{ quest.id }}" class="btn btn-primary">Подробнее</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">Квесты не найдены.</div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.getElementById('quest-filter-form').addEventListener('submit', function(e) {
+    // Отключаем пустые числовые поля перед отправкой
+    const numberInputs = this.querySelectorAll('input[type="number"]');
+    numberInputs.forEach(input => {
+        if (input.value === '') {
+            input.disabled = true;
+        } else {
+            // Валидация значения
+            input.value = Math.max(parseInt(input.min), parseInt(input.value) || 0);
+        }
+    });
+
+    // Отключаем пустые select-поля
+    const selects = this.querySelectorAll('select');
+    selects.forEach(select => {
+        if (select.value === '') {
+            select.disabled = true;
+        }
+    });
+});
+</script>
+{% endblock %}

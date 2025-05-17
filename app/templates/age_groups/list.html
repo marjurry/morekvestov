@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Возрастные группы{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h2>Возрастные группы</h2>
+        
+        {% if age_groups %}
+            <div class="list-group">
+                {% for age_group in age_groups %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ age_group.min_age }}-{{ age_group.max_age }} лет</h5>
+                            <span class="badge bg-primary rounded-pill">
+                                {{ age_group.challenges|length }} заданий
+                            </span>
+                        </div>
+                        <p class="mb-1">{{ age_group.description }}</p>
+                        
+                        {% if current_user %}
+                        <div class="mt-2">
+                            <a href="/age-groups/{{ age_group.id }}/edit" class="btn btn-sm btn-primary">Редактировать</a>
+                            <form method="post" action="/age-groups/{{ age_group.id }}/delete" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Удалить возрастную группу?')">Удалить</button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">Возрастные группы не найдены.</div>
+        {% endif %}
+        
+        {% if current_user %}
+        <div class="mt-4">
+            <a href="/age-groups/create" class="btn btn-success">Создать возрастную группу</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

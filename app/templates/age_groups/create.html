@@ -1,0 +1,36 @@
+<!-- create.html -->
+{% extends "base.html" %}
+
+{% block title %}Создание возрастной группы{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2>Создание возрастной группы</h2>
+        
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        
+        <form method="post" action="/age-groups">
+            <div class="mb-3">
+                <label for="min_age" class="form-label">Минимальный возраст</label>
+                <input type="number" class="form-control" id="min_age" name="min_age" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="max_age" class="form-label">Максимальный возраст</label>
+                <input type="number" class="form-control" id="max_age" name="max_age" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="description" class="form-label">Описание</label>
+                <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Создать</button>
+            <a href="/age-groups" class="btn btn-secondary">Отмена</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

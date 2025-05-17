@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Первое погружение{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto text-center">
+        
+
+        
+        <h1 class="display-4 mb-4">Задания на любой вкус в нашей базе</h1>
+        <p class="lead">Создай свой квест всего в три клика. Не забудь авторизоваться, чтобы использовать все возможности</p>
+        
+        {% if not current_user %}
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mt-4">
+            <a href="/auth/register" class="btn btn-primary btn-lg px-4 gap-3">Зарегистрироваться</a>
+            <a href="/auth/login" class="btn btn-outline-secondary btn-lg px-4">Войти</a>
+        </div>
+        {% else %}
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mt-4">
+            <a href="/quests/new" class="btn btn-success btn-lg px-4 gap-3">Создать квест</a>
+            <a href="/quests" class="btn btn-primary btn-lg px-4">Посмотреть квесты</a>
+        </div>
+        {% endif %}
+        <div class="mb-4">
+            <img src="/static/images/му.jpg" alt="Главное изображение" class="img-fluid rounded" style="max-height: 400px;">
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}

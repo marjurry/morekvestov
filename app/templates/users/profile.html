@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Мой профиль{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h2>Мой профиль</h2>
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Информация о пользователе</h5>
+                <p class="card-text"><strong>Номер телефона:</strong> {{ current_user.phone_number }}</p>
+                <p class="card-text"><strong>Статус:</strong> {% if current_user.is_active %}Активен{% else %}Неактивен{% endif %}</p>
+                
+                <!--a href="/users/{{ current_user.phone_number }}/edit" class="btn btn-primary">Редактировать</a-->
+            </div>
+        </div>
+        
+        <h3 class="mt-4">Мои квесты</h3>
+        {% if user_quests %}
+            <div class="list-group">
+                {% for quest in user_quests %}
+                    <a href="/quests/{{ quest.id }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">Квест #{{ quest.id }}</h5>
+                            <small>{{ quest.total_duration }} мин.</small>
+                        </div>
+                        <p class="mb-1">Тип локации: {{ quest.location_type }}</p>
+                        <small>Возрастная группа: {{ quest.age_group.min_age }}-{{ quest.age_group.max_age }} лет</small>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">У вас пока нет созданных квестов.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

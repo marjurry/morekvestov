@@ -1,0 +1,37 @@
+
+services:
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+
+  backend:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DB_HOST: morekvestov
+      DB_PORT: 5432  # <-- Добавляем порт отдельно
+      DB_USER: postgres
+      DB_PASSWORD: 1234
+      DB_NAME: postgres
+    networks:
+     - existing_network
+    depends_on:
+      db:
+        condition: service_healthy
+
+
+networks:
+  existing_network:
+    external: true
+
+volumes:
+  postgres_data:

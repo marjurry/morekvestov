@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}{{ challenge.title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>{{ challenge.title }}</h2>
+            {% if current_user and (current_user.is_admin or current_user.phone_number == challenge.user_id) %}
+            <div class="d-flex gap-2">
+                <a href="/challenges/{{ challenge.id }}/edit" class="btn btn-outline-primary">Редактировать</a>
+                <form method="post" action="/challenges/{{ challenge.id }}/delete">
+                    <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Удалить задание?')">Удалить</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Описание задания</h5>
+                <p class="card-text">{{ challenge.description }}</p>
+                
+                <ul class="list-group list-group-flush mb-3">
+                    <li class="list-group-item">
+                        <strong>Тип задания:</strong> 
+                        <span class="badge 
+                            {% if challenge.type == 'спортивный' %}bg-danger
+                            {% elif challenge.type == 'интеллектуальный' %}bg-primary
+                            {% else %}bg-success{% endif %}">
+                            {% if challenge.type == 'спортивный' %}Спортивный
+                            {% elif challenge.type == 'интеллектуальный' %}Интеллектуальный
+                            {% else %}Творческий{% endif %}
+                        </span>
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Тип локации:</strong> 
+                        <span class="badge 
+                            {% if challenge.location_type == 'дома' %}bg-info
+                            {% elif challenge.location_type == 'везде' %}bg-primary
+                            {% else %}bg-warning text-dark{% endif %}">
+                            {% if challenge.location_type == 'дома' %}Дома
+                            {% elif challenge.location_type == 'везде' %}Везде
+                            {% else %}На улице{% endif %}
+                        </span>
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Продолжительность:</strong> {{ challenge.duration_min }} минут
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Возрастная группа:</strong> {{ challenge.age_group.min_age }}-{{ challenge.age_group.max_age }} лет
+                    </li>
+                    {% if challenge.user %}
+                    <li class="list-group-item">
+                        <strong>Автор:</strong> {{ challenge.user.phone_number }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Правила:</strong> {{ challenge.rules }}
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Квесты с этим заданием</h5>
+                {% if quests_with_challenge %}
+                    <div class="list-group">
+                        {% for quest in quests_with_challenge %}
+                            <a href="/quests/{{ quest.id }}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">Квест #{{ quest.id }}</h6>
+                                    <small>{{ quest.total_duration }} мин.</small>
+                                </div>
+                                <div class="d-flex gap-2 mb-2">
+                                    <span class="badge bg-light text-dark">
+                                        {{ quest.age_group.min_age }}-{{ quest.age_group.max_age }} лет
+                                    </span>
+                                    <span class="badge 
+                                        {% if quest.location_type == 'дома' %}bg-info
+                                        {% elif quest.location_type == 'везде' %}bg-primary
+                                        {% else %}bg-warning text-dark{% endif %}">
+                                        {% if quest.location_type == 'дома' %}Дома
+                                        {% elif quest.location_type == 'везде' %}Везде
+                                        {% else %}На улице{% endif %}
+                                    </span>
+                                </div>
+                                <small class="text-muted">Создатель: {{ quest.user.phone_number if quest.user else "Неизвестен" }}</small>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">Это задание пока не используется ни в одном квесте.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Действия</h5>
+                <a href="/challenges" class="btn btn-outline-primary w-100 mb-2">
+                    ← Назад к списку заданий
+                </a>
+                {% if current_user %}
+                <a href="/challenges/create" class="btn btn-outline-success w-100">
+                    Создать новое задание
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

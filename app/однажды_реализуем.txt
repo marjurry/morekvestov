@@ -1,0 +1,189 @@
+@app.get("/quests/{quest_id}/edit", response_class=HTMLResponse)
+async def edit_quest_page(
+    request: Request,
+    quest_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    quest = crud.get_quest(db, quest_id=quest_id)
+    if not quest:
+        raise HTTPException(status_code=404, detail="Квест не найден")
+    
+    if quest.user_id != current_user.phone_number:
+        raise HTTPException(status_code=403, detail="Недостаточно прав")
+    
+    age_groups = crud.get_age_groups(db)
+    challenges = crud.get_challenges(db)
+    quest_challenges = crud.get_quest_challenges(db, quest_id=quest_id)
+    quest_challenge_ids = [c.id for c in quest_challenges]
+    
+    return templates.TemplateResponse("quests/edit.html", {
+        "request": request,
+        "current_user": current_user,
+        "quest": quest,
+        "age_groups": age_groups,
+        "challenges": challenges,
+        "quest_challenge_ids": quest_challenge_ids
+    })
+
+@app.get("/challenges/{challenge_id}/edit", response_class=HTMLResponse)
+async def edit_challenge_page(
+    request: Request,
+    challenge_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    challenge = crud.get_challenge(db, challenge_id=challenge_id)
+    if not challenge:
+        raise HTTPException(status_code=404, detail="Задание не найдено")
+    
+    age_groups = crud.get_age_groups(db)
+    
+    return templates.TemplateResponse("challenges/edit.html", {
+        "request": request,
+        "current_user": current_user,
+        "challenge": challenge,
+        "age_groups": age_groups
+    })
+
+@app.get("/age-groups", response_class=HTMLResponse)
+async def read_age_groups_page(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: Optional[models.User] = Depends(get_current_user_optional)
+):
+    age_groups = crud.get_age_groups(db)
+    return templates.TemplateResponse("age_groups/list.html", {
+        "request": request,
+        "current_user": current_user,
+        "age_groups": age_groups
+    })
+
+@app.get("/age-groups/create", response_class=HTMLResponse)
+async def create_age_group_page(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    return templates.TemplateResponse("age_groups/create.html", {
+        "request": request,
+        "current_user": current_user
+    })
+
+@app.post("/age-groups", response_class=HTMLResponse)
+async def create_age_group_form(
+    request: Request,
+    min_age: int = Form(...),
+    max_age: int = Form(...),
+    description: str = Form(""),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user_optional)
+):
+    try:
+        age_group_data = schemas.AgeGroupCreate(
+            min_age=min_age,
+            max_age=max_age,
+            description=description
+        )
+        
+        age_group = crud.create_age_group(db=db, **age_group_data.dict())
+        
+        return RedirectResponse(url="/age-groups", status_code=status.HTTP_303_SEE_OTHER)
+    except Exception as e:
+        return templates.TemplateResponse("age_groups/create.html", {
+            "request": request,
+            "current_user": current_user,
+            "error": str(e)
+        })
+
+@app.get("/age-groups/{age_group_id}/edit", response_class=HTMLResponse)
+async def edit_age_group_page(
+    request: Request,
+    age_group_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    age_group = crud.get_age_group(db, age_group_id=age_group_id)
+    if not age_group:
+        raise HTTPException(status_code=404, detail="Возрастная группа не найдена")
+    
+    return templates.TemplateResponse("age_groups/edit.html", {
+        "request": request,
+        "current_user": current_user,
+        "age_group": age_group
+    })
+
+@app.post("/age-groups/{age_group_id}", response_class=HTMLResponse)
+async def update_age_group_form(
+    request: Request,
+    age_group_id: int,
+    min_age: int = Form(...),
+    max_age: int = Form(...),
+    description: str = Form(""),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user_optional)
+):
+    try:
+        age_group = crud.get_age_group(db, age_group_id=age_group_id)
+        if not age_group:
+            raise HTTPException(status_code=404, detail="Возрастная группа не найдена")
+        
+        age_group_update = schemas.AgeGroupUpdate(
+            min_age=min_age,
+            max_age=max_age,
+            description=description
+        )
+        
+        updated_age_group = crud.update_age_group(
+            db, 
+            age_group_id=age_group_id, 
+            update_data=age_group_update.dict(exclude_unset=True)
+        )
+        
+        return RedirectResponse(url="/age-groups", status_code=status.HTTP_303_SEE_OTHER)
+    except Exception as e:
+        age_group = crud.get_age_group(db, age_group_id=age_group_id)
+        
+        return templates.TemplateResponse("age_groups/edit.html", {
+            "request": request,
+            "current_user": current_user,
+            "age_group": age_group,
+            "error": str(e)
+        })
+
+@app.post("/age-groups/{age_group_id}/delete", response_class=HTMLResponse)
+async def delete_age_group_form(
+    request: Request,
+    age_group_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    age_group = crud.get_age_group(db, age_group_id=age_group_id)
+    if not age_group:
+        raise HTTPException(status_code=404, detail="Возрастная группа не найдена")
+    
+    crud.delete_age_group(db, age_group_id=age_group_id)
+    return RedirectResponse(url="/age-groups", status_code=status.HTTP_303_SEE_OTHER)
+
+ХТМЛ 
+{% if current_user and user_quests %}
+<div class="row mt-5">
+    <div class="col-md-8 mx-auto">
+        <h3>Ваши последние квесты</h3>
+        <div class="row">
+            {% for quest in user_quests[:3] %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 animated-card">
+                    <!-- Здесь должно быть содержимое карточки квеста -->
+                    <div class="card-body">
+                        <h5 class="card-title">{{ quest.title }}</h5>
+                        <p class="card-text">{{ quest.description|truncate(100) }}</p>
+                        <a href="/quests/{{ quest.id }}" class="btn btn-primary">Подробнее</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}  <!-- Закрывающий тег цикла -->
+        </div>
+    </div>
+</div>
+{% endif %}

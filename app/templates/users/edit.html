@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Редактирование профиля</h2>
+    <form method="post" action="/users/{{ current_user.phone_number }}/edit">
+        <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="is_active" name="is_active" 
+                   {% if current_user.is_active %}checked{% endif %}>
+            <label class="form-check-label" for="is_active">Активный пользователь</label>
+        </div>
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+    </form>
+</div>
+{% endblock %}
