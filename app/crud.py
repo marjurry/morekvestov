@@ -6,6 +6,7 @@ from typing import List, Optional, Dict, Any
 from .schemas import UserCreate
 from .utils import get_password_hash
 from sqlalchemy.orm import joinedload
+from sqlalchemy import func
 
 # User CRUD operations
 '''def create_user(db: Session, phone_number: int, password: str) -> models.User:
@@ -110,8 +111,10 @@ from app.models import quest_challenge_association
 
 # В файле crud.py
 def create_challenge(db: Session, challenge_data: schemas.ChallengeCreate):
+    max_id = db.query(func.max(models.Challenge.id)).scalar() or 0
+    new_id = max_id + 1
     db_challenge = models.Challenge(
-        id=challenge_data.id,
+        id=new_id,
         title=challenge_data.title,
         type=challenge_data.type,
         location_type=challenge_data.location_type,
@@ -236,8 +239,33 @@ def delete_challenge(db: Session, challenge_id: int) -> bool:
         return True
     return False
 
+def create_quest(db: Session, user_id: int, total_duration: int, 
+                location_type: str, age_group_id: int, 
+                challenge_ids: Optional[List[int]] = None) -> models.Quest:
+    """Create a new quest with optional challenge associations"""
+    
+    # Получаем максимальный текущий ID и увеличиваем на 1
+    max_id = db.query(func.max(models.Quest.id)).scalar() or 0
+    new_id = max_id + 1
+    
+    db_quest = models.Quest(
+        id=new_id,
+        user_id=user_id,
+        total_duration=total_duration,
+        location_type=location_type,
+        age_group_id=age_group_id
+    )
+    db.add(db_quest)
+    db.commit()
+    
+    if challenge_ids:
+        for challenge_id in challenge_ids:
+            add_challenge_to_quest(db, db_quest.id, challenge_id)
+    
+    db.refresh(db_quest)
+    return db_quest
 # Quest CRUD operations (updated to handle challenge relationships)
-def create_quest(db: Session, id: int, user_id: int, total_duration: int, 
+'''def create_quest(db: Session, id: int, user_id: int, total_duration: int, 
                 location_type: str, age_group_id: int, 
                 challenge_ids: Optional[List[int]] = None) -> models.Quest:
     """Create a new quest with optional challenge associations"""
@@ -256,7 +284,7 @@ def create_quest(db: Session, id: int, user_id: int, total_duration: int,
             add_challenge_to_quest(db, db_quest.id, challenge_id)
     
     db.refresh(db_quest)
-    return db_quest
+    return db_quest'''
 
 def get_quest(db: Session, quest_id: int) -> Optional[models.Quest]:
     """Get quest by ID including its challenge relationships"""

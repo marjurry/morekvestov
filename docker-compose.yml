@@ -1,37 +1,60 @@
+version: "3.8"
 
 services:
+  # Контейнер для backend
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: backend
+    environment:
+      - DB_NAME=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=1234
+      - DB_HOST=db
+      - DB_PORT=5432
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    networks:
+      - app_network
+    command: python app/main.py 
+
+  # Контейнер для frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:3004"
+    networks:
+      - app_network
+    depends_on:
+      - backend
+    command: python app/main.py 
+
+  # Контейнер для базы данных PostgreSQL
   db:
     image: postgres:13
+    container_name: db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 1234
-      POSTGRES_DB: postgres
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1234
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./db-init:/docker-entrypoint-initdb.d
     ports:
       - "5432:5432"
-
-
-  backend:
-    build: .
-    ports:
-      - "8000:8000"
-    environment:
-      DB_HOST: morekvestov
-      DB_PORT: 5432  # <-- Добавляем порт отдельно
-      DB_USER: postgres
-      DB_PASSWORD: 1234
-      DB_NAME: postgres
     networks:
-     - existing_network
-    depends_on:
-      db:
-        condition: service_healthy
-
+      - app_network
 
 networks:
-  existing_network:
-    external: true
+  app_network:
+    driver: bridge
 
 volumes:
   postgres_data:
+

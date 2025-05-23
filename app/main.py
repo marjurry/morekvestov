@@ -289,7 +289,7 @@ async def show_create_quest_form(
 @app.post("/quests", response_class=HTMLResponse)
 async def create_quest_form(
     request: Request,
-    id: int = Form(...),
+    #id: int = Form(...),
     total_duration: int = Form(...),
     location_type: str = Form(...),
     age_group_id: int = Form(...),
@@ -299,7 +299,7 @@ async def create_quest_form(
 ):
     try:
         quest_data = schemas.QuestCreate(
-            id=id,
+            #id=id,
             user_id=current_user.phone_number,
             total_duration=total_duration,
             location_type=location_type,
@@ -309,7 +309,7 @@ async def create_quest_form(
         
         quest = crud.create_quest(
             db=db,
-            id=id,
+            #id=id,
             user_id=quest_data.user_id,
             total_duration=quest_data.total_duration,
             location_type=quest_data.location_type,
@@ -486,7 +486,7 @@ async def create_challenge_page(
 @app.post("/challenges", response_class=HTMLResponse)
 async def create_challenge_form(
     request: Request,
-    id: int = Form(...),
+    #id: int = Form(...),
     title: str = Form(...),
     type: str = Form(...),  # Обратите внимание: name="type" в форме
     location_type: str = Form(...),
@@ -498,7 +498,7 @@ async def create_challenge_form(
 ):
     try:
         challenge_data = schemas.ChallengeCreate(
-            id=id,
+           # id=id,
             title=title,
             type=type,  # Здесь сопоставляем с полем модели
             location_type=location_type,

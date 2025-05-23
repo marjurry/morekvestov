@@ -50,7 +50,7 @@ class ChallengeBase(BaseModel):
     rules: str
 
 class ChallengeCreate(ChallengeBase):
-    id: int
+   # id: int
     pass
 
 class Challenge(ChallengeBase):
@@ -78,7 +78,7 @@ class QuestBase(BaseModel):
     age_group_id: int
 
 class QuestCreate(QuestBase):
-    id: int  # Добавляем явное требование ID
+    #id: int  # Добавляем явное требование ID
     challenge_ids: Optional[List[int]] = None
 
 class Quest(QuestBase):
