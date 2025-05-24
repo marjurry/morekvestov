@@ -35,8 +35,7 @@ app = FastAPI()
 
 # Настройка Jinja2
 BASE_DIR = Path(__file__).resolve().parent
-# Добавьте после создания app
-#app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
 
 static_path = os.path.join(os.path.dirname(__file__), "static")
 app.mount("/static", StaticFiles(directory=static_path), name="static")
@@ -612,7 +611,49 @@ async def read_challenge_api(
         raise HTTPException(status_code=404, detail="Challenge not found")
     return challenge
 
+@app.post("/age-groups", response_class=HTMLResponse)
+async def create_age_group_form(
+    request: Request,
+    name: str = Form(...),
+    min_age: int = Form(...),
+    max_age: int = Form(...),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user_optional)
+):
+    try:
+        age_group_data = schemas.AgeGroupCreate(
+            name=name,
+            min_age=min_age,
+            max_age=max_age,
+            
+        )
+        
+        age_group = crud.create_age_group(db=db, **age_group_data.dict())
+        
+        return RedirectResponse(url="/age-groups", status_code=status.HTTP_303_SEE_OTHER)
+    except Exception as e:
+        return templates.TemplateResponse("age_groups/create.html", {
+            "request": request,
+            "current_user": current_user,
+            "error": str(e)
+        })
 
+@app.get("/age-groups/{age_group_id}/edit", response_class=HTMLResponse)
+async def edit_age_group_page(
+    request: Request,
+    age_group_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    age_group = crud.get_age_group(db, age_group_id=age_group_id)
+    if not age_group:
+        raise HTTPException(status_code=404, detail="Возрастная группа не найдена")
+    
+    return templates.TemplateResponse("age_groups/edit.html", {
+        "request": request,
+        "current_user": current_user,
+        "age_group": age_group
+    })
 # Dependency
 def get_db():
     db = SessionLocal()

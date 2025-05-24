@@ -17,7 +17,8 @@ from alembic import command
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = "postgresql+psycopg2://postgres:1234@localhost:5432/postgres"
+
+DATABASE_URL = "postgresql://postgres:postgres@postgres:5432/quest_app"
 
 try:
     engine = create_engine(DATABASE_URL)

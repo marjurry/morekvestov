@@ -9,14 +9,7 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy import func
 
 # User CRUD operations
-'''def create_user(db: Session, phone_number: int, password: str) -> models.User:
-    """Create a new user"""
-    db_user = models.User(phone_number=phone_number)
-    db_user.set_password(password)
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user'''
+
 
 def get_user(db: Session, phone_number: int) -> Optional[models.User]:
     """Get user by phone number"""
@@ -58,9 +51,11 @@ def delete_user(db: Session, phone_number: int) -> bool:
     return False
 
 # AgeGroup CRUD operations
-def create_age_group(db: Session, id: id, name: str, min_age: int, max_age: int) -> models.AgeGroup:
+def create_age_group(db: Session, name: str, min_age: int, max_age: int) -> models.AgeGroup:
     """Create a new age group"""
-    db_age_group = models.AgeGroup(id=id, name=name, min_age=min_age, max_age=max_age)
+    max_id = db.query(func.max(models.AgeGroup.id)).scalar() or 0
+    new_id = max_id + 1
+    db_age_group = models.AgeGroup(id=new_id, name=name, min_age=min_age, max_age=max_age)
     db.add(db_age_group)
     db.commit()
     db.refresh(db_age_group)
@@ -126,51 +121,7 @@ def create_challenge(db: Session, challenge_data: schemas.ChallengeCreate):
     db.commit()
     db.refresh(db_challenge)
     return db_challenge
-# Challenge CRUD operations (updated to handle quest relationships)
-'''def create_challenge(db: Session, id: int, title: str, type: str, location_type: str, 
-                   duration_min: int, age_group_id: int, rules: str):
-    """Create a new challenge with optional quest associations"""
-    db_challenge = models.Challenge(
-        id=id,
-        title=title,
-        type=type,
-        location_type=location_type,
-        duration_min=duration_min,
-        age_group_id=age_group_id,
-        rules=rules
-    )
-    db.add(db_challenge)
-    db.commit()
-    db.refresh(db_challenge)
-    return db_challenge'''
 
-'''def get_challenges_query_by_filters(
-    db: Session,
-    age_group_id: Optional[int] = None,
-    challenge_type: Optional[str] = None,
-    location_type: Optional[str] = None,
-    min_duration: Optional[int] = None,
-    max_duration: Optional[int] = None,
-):
-    query = db.query(models.Challenge).join(models.AgeGroup)
-    
-    if age_group_id is not None:
-        query = query.filter(models.Challenge.age_group_id == age_group_id)
-    
-    if challenge_type is not None:
-        query = query.filter(models.Challenge.challenge_type == challenge_type)
-    
-    if location_type is not None:
-        query = query.filter(models.Challenge.location_type == location_type)
-    
-    if min_duration is not None:
-        query = query.filter(models.Challenge.duration >= min_duration)
-    
-    if max_duration is not None:
-        query = query.filter(models.Challenge.duration <= max_duration)
-    
-    return query
-'''
 def get_challenge(db: Session, challenge_id: int) -> Optional[models.Challenge]:
     """Get challenge by ID including its quest relationships"""
     return db.query(models.Challenge).filter(models.Challenge.id == challenge_id).first()
@@ -264,27 +215,7 @@ def create_quest(db: Session, user_id: int, total_duration: int,
     
     db.refresh(db_quest)
     return db_quest
-# Quest CRUD operations (updated to handle challenge relationships)
-'''def create_quest(db: Session, id: int, user_id: int, total_duration: int, 
-                location_type: str, age_group_id: int, 
-                challenge_ids: Optional[List[int]] = None) -> models.Quest:
-    """Create a new quest with optional challenge associations"""
-    db_quest = models.Quest(
-        id=id,
-        user_id=user_id,
-        total_duration=total_duration,
-        location_type=location_type,
-        age_group_id=age_group_id
-    )
-    db.add(db_quest)
-    db.commit()
-    
-    if challenge_ids:
-        for challenge_id in challenge_ids:
-            add_challenge_to_quest(db, db_quest.id, challenge_id)
-    
-    db.refresh(db_quest)
-    return db_quest'''
+
 
 def get_quest(db: Session, quest_id: int) -> Optional[models.Quest]:
     """Get quest by ID including its challenge relationships"""
@@ -363,12 +294,7 @@ def get_quest_challenges(db: Session, quest_id: int) -> List[schemas.ChallengeWi
         )
     for challenge in quest.challenges
     ]
-    '''for challenge in quest.challenges:
-        result.append({
-            "title": challenge.title,
-            "age_group": challenge.age_group.name  
-        })
-    return result'''
+
 
 def get_challenge_quests(db: Session, challenge_id: int) -> List[models.Quest]:
     """Get all quests that include a specific challenge"""
